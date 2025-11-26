@@ -100,10 +100,7 @@
 	 * Initialize PDF.js worker
 	 */
 	onMount(async () => {
-		pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-			'pdfjs-dist/build/pdf.worker.mjs',
-			import.meta.url
-		).toString();
+		pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.4.394/build/pdf.worker.min.js';
 	});
 
 	/**
