@@ -7,7 +7,7 @@ export default defineConfig({
 	server: {
 		port: 4567,
 		host: '0.0.0.0',
-		allowedHosts: ['signpdf.leadplateau.com'],
+		allowedHosts: ['signatura.plugpuppy.com'],
 		hmr: {
 			clientPort: 443,
 			protocol: 'wss'

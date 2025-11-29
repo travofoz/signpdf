@@ -107,26 +107,35 @@
 	 * Load and render PDF pages
 	 */
 	async function loadPDF(file: File) {
-		if (!pdfjsLib) return;
-		const arrayBuffer = await file.arrayBuffer();
-		const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-		const pages: string[] = [];
-		for (let i = 1; i <= pdf.numPages; i++) {
-			const page = await pdf.getPage(i);
-			const viewport = page.getViewport({ scale: 1.5 });
-
-			const tempCanvas = document.createElement('canvas');
-			const context = tempCanvas.getContext('2d')!;
-			tempCanvas.width = viewport.width;
-			tempCanvas.height = viewport.height;
-
-			await page.render({ canvasContext: context, viewport, canvas: tempCanvas }).promise;
-			pages.push(tempCanvas.toDataURL());
+		if (!pdfjsLib) {
+			console.error('PDF.js library not loaded');
+			return;
 		}
 
-		pdfPages = pages;
-		currentPage = 0;
+		try {
+			const arrayBuffer = await file.arrayBuffer();
+			const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+			const pages: string[] = [];
+			for (let i = 1; i <= pdf.numPages; i++) {
+				const page = await pdf.getPage(i);
+				const viewport = page.getViewport({ scale: 1.5 });
+
+				const tempCanvas = document.createElement('canvas');
+				const context = tempCanvas.getContext('2d')!;
+				tempCanvas.width = viewport.width;
+				tempCanvas.height = viewport.height;
+
+				await page.render({ canvasContext: context, viewport, canvas: tempCanvas }).promise;
+				pages.push(tempCanvas.toDataURL());
+			}
+
+			pdfPages = pages;
+			currentPage = 0;
+		} catch (error) {
+			console.error('Failed to load PDF:', error);
+			alert('Failed to load PDF. Please check the file and try again.');
+		}
 	}
 
 	/**
