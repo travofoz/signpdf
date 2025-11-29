@@ -368,7 +368,7 @@
 		}
 
 		const pdfBytes = await pdfDoc.save();
-		const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+		const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
@@ -382,7 +382,7 @@
 
 <div class="min-h-screen bg-base-200">
 	<div class="container mx-auto p-8">
-		<h1 class="text-4xl font-bold text-center mb-8">PDF Signer</h1>
+		<h1 class="text-4xl font-bold text-center mb-8">Signatura</h1>
 
 		{#if !pdfFile}
 			<!-- Upload Section -->

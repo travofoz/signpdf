@@ -14,6 +14,7 @@ export default defineConfig({
 		}
 	},
 	build: {
+		cssMinify: 'lightningcss', 
 		rollupOptions: {
 			output: {
 				manualChunks(id) {
@@ -28,9 +29,8 @@ export default defineConfig({
 	css: {
 		transformer: 'lightningcss',
 		lightningcss: {
-			targets: { chrome: 120, safari: 16, firefox: 120 }
+			// Firefox 128 is REQUIRED for @property support.
+			targets: { chrome: 120, safari: 17, firefox: 128 }
 		}
-	},
-	// Suppress warnings about modern CSS features
-	logLevel: 'error'
+	}
 });
