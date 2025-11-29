@@ -40,7 +40,30 @@ npm run preview
 
 ## Deployment
 
-This application is configured for static deployment to GitHub Pages using `@sveltejs/adapter-static`. The GitHub Actions workflow in `.github/workflows/deploy.yml` automatically deploys to GitHub Pages when pushing to the main branch.
+### GitHub Pages Configuration
+
+**CRITICAL**: GitHub Pages must be configured to use "GitHub Actions" as the source, NOT "Deploy from a branch".
+
+#### Setup Steps:
+1. Go to repository Settings → Pages
+2. Under "Build and deployment" → "Source", select **"GitHub Actions"**
+3. Push changes to trigger the workflow
+
+#### Why This Matters:
+- **"Deploy from a branch"**: GitHub Pages processes source files with Jekyll (serves README.md)
+- **"GitHub Actions"**: GitHub Pages serves artifacts uploaded by workflow (serves built app)
+
+#### Required Files:
+- `.nojekyll` - Disables Jekyll processing
+- `CNAME` - Custom domain configuration (copied to build directory)
+- `svelte.config.js` - Base path set to `''` for custom domains
+
+#### Workflow Process:
+1. GitHub Actions builds the app (`npm run build`)
+2. Uploads `./build` directory as artifact
+3. GitHub Pages serves the artifact content
+
+The GitHub Actions workflow in `.github/workflows/deploy.yml` handles the build and deployment automatically when pushing to the master branch.
 
 ## Tech Stack
 

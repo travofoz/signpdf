@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
-    name: "signpdf.leadplateau.com",
-    cwd: "/var/www/signpdf.leadplateau.com",
+    name: "signatura.plugpuppy.com",
+    cwd: "/var/www/signatura.plugpuppy.com",
     script: "npm",
     args: "start",
     env: {

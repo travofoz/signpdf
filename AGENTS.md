@@ -19,6 +19,6 @@
 - **PDF libraries**: Use pdf-lib for PDF manipulation, pdfjs-dist for rendering
 
 ## Critical Configuration
-- NEVER modify `allowedHosts: ['signpdf.leadplateau.com']` in vite.config.ts
+- NEVER modify `allowedHosts: ['signatura.plugpuppy.com']` in vite.config.ts
 - Adapter: @sveltejs/adapter-node with output directory 'build'
 - Server runs on port 4567 with HMR WebSocket support
