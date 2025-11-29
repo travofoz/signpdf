@@ -24,20 +24,58 @@ export class PDFFormService {
   private form: PDFForm | null = null;
 
   async loadDocument(arrayBuffer: ArrayBuffer): Promise<void> {
-    this.pdfDoc = await PDFDocument.load(arrayBuffer);
-    this.form = this.pdfDoc.getForm();
+    try {
+      // Validate ArrayBuffer
+      if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+        throw new Error('Invalid or empty ArrayBuffer provided');
+      }
+
+      // Create a copy of ArrayBuffer to prevent detachment issues
+      const arrayBufferCopy = arrayBuffer.slice(0);
+      
+      // Load PDF with error handling
+      this.pdfDoc = await PDFDocument.load(arrayBufferCopy, {
+        ignoreEncryption: true,
+        throwOnInvalidObject: false
+      });
+      
+      this.form = this.pdfDoc.getForm();
+      console.log('PDF document loaded successfully for form processing');
+    } catch (error) {
+      console.error('Failed to load PDF document:', error);
+      throw new Error(`PDF loading failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Load PDF document from already loaded PDFDocument (for reuse)
+   */
+  loadFromDocument(pdfDoc: PDFDocument): void {
+    try {
+      this.pdfDoc = pdfDoc;
+      this.form = pdfDoc.getForm();
+      console.log('PDF document reused successfully for form processing');
+    } catch (error) {
+      console.error('Failed to reuse PDF document:', error);
+      throw new Error(`PDF reuse failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   detectFormFields(): FormField[] {
     if (!this.form) {
+      console.warn('PDF form not loaded - cannot detect fields');
       return [];
     }
 
     try {
       const fields = this.form.getFields();
+      console.log(`Found ${fields.length} form fields in PDF`);
       return fields.map(field => this.mapFieldToFormField(field));
     } catch (error) {
-      console.warn('Failed to detect form fields:', error);
+      console.error('Failed to detect form fields:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message, error.stack);
+      }
       return [];
     }
   }
@@ -133,32 +171,55 @@ export class PDFFormService {
     try {
       // Type-safe field value extraction
       const fieldName = field.getName();
-      if (!fieldName) return null;
+      if (!fieldName) {
+        console.warn('Field has no name, skipping value extraction');
+        return null;
+      }
 
       switch (field.constructor.name) {
         case 'PDFTextField': {
           const textField = field as any;
-          return typeof textField.getText === 'function' ? textField.getText() || '' : '';
+          if (typeof textField.getText === 'function') {
+            const value = textField.getText();
+            return value !== null && value !== undefined ? value : '';
+          }
+          return '';
         }
         case 'PDFCheckBox': {
           const checkBox = field as any;
-          return typeof checkBox.isChecked === 'function' ? checkBox.isChecked() : false;
+          if (typeof checkBox.isChecked === 'function') {
+            return checkBox.isChecked();
+          }
+          return false;
         }
         case 'PDFRadioGroup': {
           const radioGroup = field as any;
-          return typeof radioGroup.getSelected === 'function' ? radioGroup.getSelected() || '' : '';
+          if (typeof radioGroup.getSelected === 'function') {
+            const value = radioGroup.getSelected();
+            return value !== null && value !== undefined ? value : '';
+          }
+          return '';
         }
         case 'PDFDropdown': {
           const dropdown = field as any;
-          return typeof dropdown.getSelected === 'function' ? dropdown.getSelected() || '' : '';
+          if (typeof dropdown.getSelected === 'function') {
+            const value = dropdown.getSelected();
+            return value !== null && value !== undefined ? value : '';
+          }
+          return '';
         }
         case 'PDFOptionList': {
           const optionList = field as any;
-          return typeof optionList.getSelected === 'function' ? optionList.getSelected() || [] : [];
+          if (typeof optionList.getSelected === 'function') {
+            const value = optionList.getSelected();
+            return Array.isArray(value) ? value : [];
+          }
+          return [];
         }
         case 'PDFSignature': 
           return null;
         default: 
+          console.warn(`Unknown field type: ${field.constructor.name}`);
           return null;
       }
     } catch (error) {
