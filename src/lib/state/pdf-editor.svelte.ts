@@ -44,7 +44,7 @@ export class PdfEditorState {
 
   // Version info
   /** Current version of the application */
-  version = $state("0.0.2-refactored");
+  version = $state(`${import.meta.env.VITE_APP_VERSION}-refactored`);
 
   constructor() {
     this.initializeManagers();
