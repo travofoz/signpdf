@@ -51,7 +51,7 @@
 	{#if field.type === 'text'}
 		<div class="form-control">
 			<label for={fieldId} class="label">
-				<span class="label-text font-medium">{field.name}</span>
+				<span class="label-text font-medium">{field.label || field.name}</span>
 				{#if field.required}
 					<span class="label-text-alt text-error">*</span>
 				{/if}
@@ -80,7 +80,7 @@
 	{:else if field.type === 'checkbox'}
 		<div class="form-control">
 			<label class="label cursor-pointer">
-				<span class="label-text font-medium">{field.name}</span>
+				<span class="label-text font-medium">{field.label || field.name}</span>
 				{#if field.required}
 					<span class="label-text-alt text-error">*</span>
 				{/if}
@@ -98,7 +98,7 @@
 	{:else if field.type === 'radio'}
 		<div class="form-control">
 			<div class="label">
-				<span class="label-text font-medium">{field.name}</span>
+				<span class="label-text font-medium">{field.label || field.name}</span>
 				{#if field.required}
 					<span class="label-text-alt text-error">*</span>
 				{/if}
@@ -125,7 +125,7 @@
 	{:else if field.type === 'dropdown'}
 		<div class="form-control">
 			<label for={fieldId} class="label">
-				<span class="label-text font-medium">{field.name}</span>
+				<span class="label-text font-medium">{field.label || field.name}</span>
 				{#if field.required}
 					<span class="label-text-alt text-error">*</span>
 				{/if}
@@ -149,7 +149,7 @@
 	{:else if field.type === 'list'}
 		<div class="form-control">
 			<label for={fieldId} class="label">
-				<span class="label-text font-medium">{field.name}</span>
+				<span class="label-text font-medium">{field.label || field.name}</span>
 				{#if field.required}
 					<span class="label-text-alt text-error">*</span>
 				{/if}
@@ -181,7 +181,7 @@
 	{:else if field.type === 'signature'}
 		<div class="form-control">
 			<div class="label">
-				<span class="label-text font-medium">{field.name}</span>
+				<span class="label-text font-medium">{field.label || field.name}</span>
 				{#if field.required}
 					<span class="label-text-alt text-error">*</span>
 				{/if}
@@ -201,7 +201,7 @@
 	{:else}
 		<div class="form-control">
 			<div class="label">
-				<span class="label-text font-medium">{field.name}</span>
+				<span class="label-text font-medium">{field.label || field.name}</span>
 				<span class="label-text-alt text-warning">Unsupported field type</span>
 			</div>
 			<input

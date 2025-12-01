@@ -126,9 +126,17 @@
 			const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
 			const pages: string[] = [];
+			const dimensions: Array<{width: number, height: number}> = [];
+
 			for (let i = 1; i <= pdf.numPages; i++) {
 				const page = await pdf.getPage(i);
 				const viewport = page.getViewport({ scale: 1.5 });
+
+				// Store the original page dimensions (in PDF points)
+				dimensions.push({
+					width: viewport.viewBox[2],
+					height: viewport.viewBox[3]
+				});
 
 				const tempCanvas = document.createElement('canvas');
 				const context = tempCanvas.getContext('2d')!;
@@ -140,6 +148,7 @@
 			}
 
 			pdfPages = pages;
+			pdfPageDimensions = dimensions;
 			currentPage = 0;
 
 			// Detect form fields
@@ -210,33 +219,42 @@
 		return isValid;
 	}
 
+	// Store PDF page dimensions for accurate coordinate conversion
+	let pdfPageDimensions: Array<{width: number, height: number}> = $state([]);
+
 	/**
 	 * Check if field has bounds on current page
 	 */
 	function hasFieldOnPage(field: FormField, pageNum: number): boolean {
 		if (!field.bounds) return false;
-		
-		// For now, assume all fields are on page 0
-		// In a real implementation, you'd need to determine which page each field belongs to
-		return pageNum === 0;
+
+		// Check if field has a page property, otherwise assume page 0
+		const fieldPage = (field.bounds as any).page ?? 0;
+		return fieldPage === pageNum;
 	}
 
 	/**
-	 * Get field bounds for current page
+	 * Get field bounds for current page with accurate coordinate conversion
 	 */
 	function getFieldBoundsForPage(field: FormField, pageNum: number): {xPercent: number, yPercent: number, widthPercent: number, heightPercent: number} | null {
 		if (!field.bounds || !hasFieldOnPage(field, pageNum)) return null;
-		
-		// Convert PDF coordinates to percentages
-		// This is a simplified approach - you'd need actual page dimensions for accurate conversion
-		const pdfWidth = 612; // Standard PDF width (8.5 inches * 72 points)
-		const pdfHeight = 792; // Standard PDF height (11 inches * 72 points)
-		
+
+		// Get actual page dimensions for accurate conversion
+		const pageDim = pdfPageDimensions[pageNum];
+		if (!pageDim) return null;
+
+		const { x, y, width, height } = field.bounds;
+
+		// Convert PDF coordinates (bottom-left origin) to web coordinates (top-left origin)
+		// PDF coordinate system: (0,0) = bottom-left
+		// Web coordinate system: (0,0) = top-left
+		const adjustedY = pageDim.height - y - height;
+
 		return {
-			xPercent: (field.bounds.x / pdfWidth) * 100,
-			yPercent: (field.bounds.y / pdfHeight) * 100,
-			widthPercent: (field.bounds.width / pdfWidth) * 100,
-			heightPercent: (field.bounds.height / pdfHeight) * 100
+			xPercent: (x / pageDim.width) * 100,
+			yPercent: (adjustedY / pageDim.height) * 100,
+			widthPercent: (width / pageDim.width) * 100,
+			heightPercent: (height / pageDim.height) * 100
 		};
 	}
 
@@ -618,11 +636,11 @@
 												}}
 												role="button"
 												tabindex="0"
-												aria-label={`Form field: ${field.name}`}
-												title={`${field.name} (${field.type})${field.required ? ' - Required' : ''}`}
+												aria-label={`Form field: ${field.label || field.name}`}
+												title={`${field.label || field.name} (${field.type})${field.required ? ' - Required' : ''}`}
 											>
 												<div class="absolute -top-6 left-0 bg-info text-info-content text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap">
-													{field.name}
+													{field.label || field.name}
 												</div>
 											</div>
 										{/if}
