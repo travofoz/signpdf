@@ -163,7 +163,9 @@ export class PDFFormService {
       case 'PDFDropdown': return 'dropdown';
       case 'PDFOptionList': return 'list';
       case 'PDFSignature': return 'signature';
-      default: return 'text';
+      default:
+        console.warn(`Unknown field type: ${pdfFieldType} - treating as text field`);
+        return 'text';
     }
   }
 
@@ -171,12 +173,20 @@ export class PDFFormService {
     try {
       // Type-safe field value extraction
       const fieldName = field.getName();
+      const fieldType = field.constructor.name;
+
       if (!fieldName) {
         console.warn('Field has no name, skipping value extraction');
         return null;
       }
 
-      switch (field.constructor.name) {
+      // Handle unknown field types more gracefully
+      if (!['PDFTextField', 'PDFCheckBox', 'PDFRadioGroup', 'PDFDropdown', 'PDFOptionList', 'PDFSignature'].includes(fieldType)) {
+        console.warn(`Unknown field type: ${fieldType} for field ${fieldName} - attempting to extract as text`);
+        return this.extractUnknownFieldValue(field, fieldType);
+      }
+
+      switch (fieldType) {
         case 'PDFTextField': {
           const textField = field as any;
           if (typeof textField.getText === 'function') {
@@ -216,15 +226,41 @@ export class PDFFormService {
           }
           return [];
         }
-        case 'PDFSignature': 
+        case 'PDFSignature':
           return null;
-        default: 
-          console.warn(`Unknown field type: ${field.constructor.name}`);
-          return null;
+        default:
+          console.warn(`Unknown field type: ${fieldType} for field ${fieldName}`);
+          return this.extractUnknownFieldValue(field, fieldType);
       }
     } catch (error) {
       console.warn(`Failed to get current value for field ${field.getName()}:`, error);
       return null;
+    }
+  }
+
+  /**
+   * Attempt to extract value from unknown field types
+   */
+  private extractUnknownFieldValue(field: PDFField, fieldType: string): any {
+    try {
+      const fieldObj = field as any;
+
+      // Try common method names that might exist on unknown field types
+      const possibleMethods = ['getValue', 'getText', 'getSelected', 'toString'];
+
+      for (const method of possibleMethods) {
+        if (typeof fieldObj[method] === 'function') {
+          const value = fieldObj[method]();
+          console.log(`Successfully extracted value from unknown field type ${fieldType} using method ${method}:`, value);
+          return value !== null && value !== undefined ? value : '';
+        }
+      }
+
+      console.warn(`Could not extract value from unknown field type ${fieldType} - returning empty string`);
+      return '';
+    } catch (error) {
+      console.warn(`Failed to extract value from unknown field type ${fieldType}:`, error);
+      return '';
     }
   }
 
