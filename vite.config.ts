@@ -7,7 +7,7 @@ export default defineConfig({
 	server: {
 		port: 4567,
 		host: '0.0.0.0',
-		allowedHosts: ['signatura.plugpuppy.com'],
+		allowedHosts: ['signatura.plugpuppy.com','plugpuppy.com','www.plugpuppy.com'],
 		hmr: {
 			clientPort: 443,
 			protocol: 'wss'
